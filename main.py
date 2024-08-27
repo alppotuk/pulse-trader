@@ -2,27 +2,43 @@ import os
 from dotenv import load_dotenv
 from rss_feed_listener import RSSFeedListener
 from logger import logger
+import threading
+import time
 
-load_dotenv()
 
 def main():
     try:
-        logger.info("Starting RSS feed listener...")
-        rss_feed_listener = RSSFeedListener("https://feeds.bloomberg.com/markets/news.rss")
-        raw_feed_entry = rss_feed_listener.fetch_data()
         
-        if raw_feed_entry:
-            logger.info("Raw feed entry fetched: %s", raw_feed_entry)
+        load_dotenv()
 
-        pulse = rss_feed_listener.get_pulse()
         
-        if pulse:
-            logger.info("Pulse created: %s", pulse.content)
-        else:
-            logger.warning("No pulse created. Check RSS feed or processing.")
+        rss_feed_url = os.getenv("RSS_FEED_URL", "https://feeds.bloomberg.com/markets/news.rss")
+        polling_interval = int(os.getenv("POLLING_INTERVAL", 60))  
+
+        logger.info("Starting RSS feed listener...")
+
+        
+        rss_feed_listener = RSSFeedListener(rss_feed_url, polling_interval)
+
+        listener_thread = threading.Thread(target=rss_feed_listener.run)
+        listener_thread.start()
+
+        
+        num_iterations = 10
+        for _ in range(num_iterations):
+            logger.info(f"Iteration: {_ + 1}")
+            time.sleep(polling_interval)
+
+        
+        rss_feed_listener.stop()
+        logger.info("Listener stopped")
+
+        listener_thread.join()  
+        logger.info("Thread stopped")
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()

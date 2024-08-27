@@ -8,14 +8,13 @@ class Pulse:
         self.timestamp = datetime.now()  
     
     def get_summary(self):
-        summary = (f"Content: {self.content}\n"
-                   f"Sentiment: {self.sentiment}\n"
-                   f"Metadata:\n"
-                   f"  Polarity: {self.metadata.get('polarity'):.2f}\n"
-                   f"  Subjectivity: {self.metadata.get('subjectivity'):.2f}\n"
-                   f"  Target Company: {self.metadata.get('target_company')}\n"
-                   f"  Noun Phrases: {', '.join(self.metadata.get('noun_phrases', []))}\n"
-                   f"Timestamp: {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+        summary = (
+                   f"   Target Company: {self.metadata.get('target_company')}\n"
+                   f"   Content: {self.content}\n"
+                   f"   Sentiment: {self.sentiment}\n"
+                   f"   Polarity: {self.metadata.get('polarity'):.2f}\n"
+                   f"   Subjectivity: {self.metadata.get('subjectivity'):.2f}\n"
+                   f"   Timestamp: {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
         return summary
     
     def as_dict(self):
