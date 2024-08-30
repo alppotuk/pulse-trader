@@ -26,7 +26,7 @@ class SentimentAnalyzer:
 
         return {
             'company_name': company,
-            'sentiment': sentiment_result['sentiment'],  # Adjusted to align with Pulse
+            'sentiment': sentiment_result['sentiment'], 
             'compound': sentiment_scores['compound'],
             'neg': sentiment_scores['neg'],
             'pos': sentiment_scores['pos'],
