@@ -4,3 +4,4 @@ feedparser
 logging
 textblob
 spacy
+transformers

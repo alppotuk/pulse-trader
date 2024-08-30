@@ -1,15 +1,9 @@
 import feedparser
-import os
-from pulse_adapter import PulseAdapter
-from pulse import Pulse
-from logger import logger
-from textblob import TextBlob
 import threading
 import time
-import nltk
-nltk.download('punkt_tab')
-import spacy 
-
+from pulse_adapter import PulseAdapter
+from pulse import Pulse
+from sentiment_analyzer import SentimentAnalyzer
 
 class RSSFeedListener(PulseAdapter):
     def __init__(self, rss_feed_url, polling_interval=60):
@@ -19,38 +13,35 @@ class RSSFeedListener(PulseAdapter):
         self.polling_interval = polling_interval
 
         if not self.feed_url:
-            logger.error("RSS feed URL property is missing.")
+            self.logger.log('error', "RSS feed URL property is missing.")
             raise ValueError("RSS feed URL is required to fetch data.")
 
-        logger.info("RSSFeedListener initialized with feed URL: %s", self.feed_url)
+        self.logger.log("info", f"RSSFeedListener initialized with feed URL: {self.feed_url}")
 
         self._latest_entry = None
         self._stop_event = threading.Event()
-
-        # Load spaCy model for named entity recognition (NER)
-        self.nlp = spacy.load('en_core_web_sm')  # Consider using a smaller model for efficiency
+        self.sentiment_analyzer = SentimentAnalyzer()
 
     def run(self):
         while not self._stop_event.is_set():
             try:
                 raw_feed_entry = self.fetch_data()
-                logger.debug(f"Fetched raw feed entry: {raw_feed_entry}")
+                self.logger.log("debug", f"Fetched raw feed entry: {raw_feed_entry}")
 
                 if raw_feed_entry:
                     if self._latest_entry and raw_feed_entry != self._latest_entry:
-                        logger.info(f"New entry detected. Processing...")
+                        self.logger.log("info", "New entry detected. Processing...")
                         self._latest_entry = raw_feed_entry
                         pulse = self.get_pulse()
                         if pulse:
-                            logger.info(f"Pulse created: \n{pulse.get_summary()}")  # Log summary for debugging
+                            self.logger.log("info", f"Pulse created: \n{pulse.get_summary()}")
                         else:
-                            logger.warning("Failed to create pulse from fetched data.")
+                            self.logger.log("warning", "Failed to create pulse from fetched data.")
                     else:
                         self._latest_entry = raw_feed_entry
-                        logger.debug("No new entries found in the RSS feed.")
-
+                        self.logger.log("debug", "No new entries found in the RSS feed.")
             except Exception as e:
-                logger.error(f"Failed to fetch RSS feed: {e}")
+                self.logger.log("error", f"Failed to fetch RSS feed: {e}")
 
             time.sleep(self.polling_interval)
 
@@ -64,52 +55,34 @@ class RSSFeedListener(PulseAdapter):
                 self.raw_data = feed.entries[0].title + ": " + feed.entries[0].summary
                 return self.raw_data
             else:
-                logger.warning("No entries found in the RSS feed.")
+                self.logger.log("warning", "No entries found in the RSS feed.")
                 return None
         except Exception as e:
-            logger.error(f"Failed to fetch RSS feed: {e}")
+            self.logger.log("error", f"Failed to fetch RSS feed: {e}")
             return None
 
     def process_data(self):
         if self.raw_data:
             self.pulse_data = self.raw_data.strip()
-            self.calculate_sentiment()
-            logger.debug("Processed data: %s", self.pulse_data)
-            return self.pulse_data
-
-        return None
-
-    def calculate_sentiment(self):
-        if self.pulse_data:
-            blob = TextBlob(self.pulse_data)
-            self.blob = blob
-            self.sentiment = "Positive" if blob.sentiment.polarity > 0 else "Negative"
-
-            noun_phrases = blob.noun_phrases
-
-            # Use spaCy for named entity recognition (NER)
-            doc = self.nlp(self.pulse_data)
-            for entity in doc.ents:
-                if entity.label_ in ('ORG', 'COMPANY'):  # Focus on organizations and companies
-                    self.target_company = entity.text
-                    break  # Only extract the first company mentioned
-
+            self.logger.log("debug", f"Processing data: {self.pulse_data}")
+            sentiment_analysis = self.sentiment_analyzer.analyze(self.pulse_data)
             self.metadata = {
-                "polarity": blob.sentiment.polarity,
-                "subjectivity": blob.sentiment.subjectivity,
-                "noun_phrases": noun_phrases,
-                "target_company": self.target_company if hasattr(self, 'target_company') else None,
+                "company_name": sentiment_analysis['company_name'],
+                "compound": sentiment_analysis['compound'],
+                "negative": sentiment_analysis['neg'],
+                "positive": sentiment_analysis['pos'],
+                "neutral": sentiment_analysis['neu'],
+                "sentiment": sentiment_analysis['sentiment']
             }
-
-            return self.sentiment
+            return self.pulse_data
+        return None
 
     def get_pulse(self):
         processed_data = self.process_data()
-        sentiment = self.calculate_sentiment()
 
-        if processed_data and sentiment:
-            pulse = Pulse(content=processed_data, sentiment=sentiment, metadata=self.metadata)
+        if processed_data:
+            pulse = Pulse(content=processed_data, sentiment_result=self.metadata, company=self.metadata['company_name'])
             return pulse
         else:
-            logger.warning("Failed to create pulse. Processed data: %s, Sentiment: %s", processed_data, sentiment)
+            self.logger.log("warning", f"Failed to create pulse. Processed data: {processed_data}")
             return None
