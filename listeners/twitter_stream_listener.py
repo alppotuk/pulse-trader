@@ -1,17 +1,17 @@
 import os
 import tweepy
 from dotenv import load_dotenv
-from pulse_adapter import PulseAdapter
+from listeners.listener_adapter import ListenerAdapter
 from pulse import Pulse
-from logger import logger
+from utils.logger import logger
 
 load_dotenv()
 
 # NOT WORKING due to pricing
 
-class TwitterStreamListener(PulseAdapter, tweepy.StreamingClient):
+class TwitterStreamListener(ListenerAdapter, tweepy.StreamingClient):
     def __init__(self):
-        PulseAdapter.__init__(self, source_type="TwitterStream")
+        ListenerAdapter.__init__(self, source_type="TwitterStream")
 
         self.bearer_token = os.getenv("BEARER_TOKEN")
         tweepy.StreamingClient.__init__(self, bearer_token=self.bearer_token)

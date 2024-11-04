@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from logger import Logger
+from utils.logger import Logger
 
-class PulseAdapter(ABC):
+class ListenerAdapter(ABC):
     def __init__(self, source_type):
         self.source_type = source_type   
         self.logger = Logger(source_type)

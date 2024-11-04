@@ -1,11 +1,11 @@
 import feedparser
 import threading
 import time
-from pulse_adapter import PulseAdapter
+from listeners.listener_adapter import ListenerAdapter
 from pulse import Pulse
-from sentiment_analyzer import SentimentAnalyzer
+from processors.sentiment_analyzer import SentimentAnalyzer
 
-class RSSFeedListener(PulseAdapter):
+class RSSFeedListener(ListenerAdapter):
     def __init__(self, rss_feed_url, polling_interval=60):
         super().__init__(source_type="RSSFeed")
 

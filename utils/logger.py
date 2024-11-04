@@ -23,7 +23,7 @@ class Logger:
 
         self.logger.info(self.name + " initialized.")
 
-    def log(self, level, message):
+    def log(self, level, message): # refactor back to simple
         if level == "info":
             self.logger.info(message)
         elif level == "warning":

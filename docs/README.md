@@ -7,7 +7,7 @@ PulseTrader is an ambitious project of mine that aims to provide an automated sy
 - RSSFeedListener: Actively listens to RSS feeds, fetching and processing new entries and creating Pulse Objects.
 - Logger: Keeps track of events and errors, helping to monitor the system.
 - Pulse: Represents the core unit of data, including content, sentiment analysis, and company identification.
-- PulseAdapter: Serves as the backbone as an abstract class for integrating various data sources into the PulseTrader system.
+- ListenerAdapter: Serves as the backbone as an abstract class for integrating various data sources into the PulseTrader system.
 
 ## Under Construction
 

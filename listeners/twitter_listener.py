@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class TwitterListener(PulseAdapter):
+class TwitterListener(ListenerAdapter):
     def __init__(self):
         super().__init__(source_type="Twitter")
 

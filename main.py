@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
-from rss_feed_listener import RSSFeedListener
-from logger import Logger
+from listeners.rss_feed_listener import RSSFeedListener
+from utils.logger import Logger
 import threading
 import time
 
@@ -18,7 +18,7 @@ def main():
         listener_thread = threading.Thread(target=rss_feed_listener.run)
         listener_thread.start()
 
-        num_iterations = 10
+        num_iterations = 1
         for _ in range(num_iterations):
             logger.log("info",f"Iteration: {_ + 1}")
             time.sleep(polling_interval)
