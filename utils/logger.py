@@ -5,9 +5,10 @@ class Logger:
         self.name = name + "Logger"
         self.logger = logging.getLogger(self.name)
         self.logger.setLevel(logging.DEBUG)
+        self.output_directory = "data/logs/"
 
         console_handler = logging.StreamHandler()
-        file_handler = logging.FileHandler(self.name + ".log")
+        file_handler = logging.FileHandler(self.output_directory + self.name + ".log")
 
         console_handler.setLevel(logging.DEBUG)
         file_handler.setLevel(logging.DEBUG)

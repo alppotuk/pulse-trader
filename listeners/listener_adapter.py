@@ -12,9 +12,6 @@ class ListenerAdapter(ABC):
     def fetch_data(self):
         pass
 
-    @abstractmethod
-    def process_data(self):
-        pass
 
     @abstractmethod
     def get_pulse(self):

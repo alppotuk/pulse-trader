@@ -1,7 +1,0 @@
-python-dotenv
-feedparser
-logging
-textblob
-spacy
-transformers
-alpaca-trade-api

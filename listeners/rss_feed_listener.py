@@ -1,9 +1,10 @@
 import feedparser
-import threading
 import time
-from listeners.listener_adapter import ListenerAdapter
 from pulse import Pulse
+
+from listeners.listener_adapter import ListenerAdapter
 from processors.sentiment_analyzer import SentimentAnalyzer
+from utils.database_utils import save_pulse_to_db
 
 class RSSFeedListener(ListenerAdapter):
     def __init__(self, rss_feed_url, polling_interval=60):
@@ -18,27 +19,30 @@ class RSSFeedListener(ListenerAdapter):
 
         self.logger.log("info", f"RSSFeedListener initialized with feed URL: {self.feed_url}")
 
-        self._latest_entry = None
-        self._stop_event = threading.Event()
+        self.latest_entry = None
+        self.running = False
         self.sentiment_analyzer = SentimentAnalyzer()
 
     def run(self):
-        while not self._stop_event.is_set():
+        self.running = True
+        while self.running:
             try:
                 raw_feed_entry = self.fetch_data()
                 self.logger.log("debug", f"Fetched raw feed entry: {raw_feed_entry}")
 
                 if raw_feed_entry:
-                    if self._latest_entry and raw_feed_entry != self._latest_entry:
+                    if  raw_feed_entry != self.latest_entry: # new entry
                         self.logger.log("info", "New entry detected. Processing...")
-                        self._latest_entry = raw_feed_entry
+                        self.latest_entry = raw_feed_entry
                         pulse = self.get_pulse()
                         if pulse:
                             self.logger.log("info", f"Pulse created: \n{pulse.get_summary()}")
+                            save_pulse_to_db(pulse)
+
                         else:
                             self.logger.log("warning", "Failed to create pulse from fetched data.")
-                    else:
-                        self._latest_entry = raw_feed_entry
+                    else: # no new entry
+                        self.latest_entry = raw_feed_entry
                         self.logger.log("debug", "No new entries found in the RSS feed.")
             except Exception as e:
                 self.logger.log("error", f"Failed to fetch RSS feed: {e}")
@@ -61,11 +65,14 @@ class RSSFeedListener(ListenerAdapter):
             self.logger.log("error", f"Failed to fetch RSS feed: {e}")
             return None
 
-    def process_data(self):
+        
+
+    def get_pulse(self):
+        """Processes data and returns analyzed data as a Pulse"""
         if self.raw_data:
-            self.pulse_data = self.raw_data.strip()
-            self.logger.log("debug", f"Processing data: {self.pulse_data}")
-            sentiment_analysis = self.sentiment_analyzer.analyze(self.pulse_data)
+            processed_data = self.raw_data.strip()
+            self.logger.log("debug", f"Processing data: {processed_data}")
+            sentiment_analysis = self.sentiment_analyzer.analyze(processed_data)
             self.metadata = {
                 "company_name": sentiment_analysis['company_name'],
                 "compound": sentiment_analysis['compound'],
@@ -74,13 +81,7 @@ class RSSFeedListener(ListenerAdapter):
                 "neutral": sentiment_analysis['neu'],
                 "sentiment": sentiment_analysis['sentiment']
             }
-            return self.pulse_data
-        return None
-
-    def get_pulse(self):
-        processed_data = self.process_data()
-
-        if processed_data:
+        
             pulse = Pulse(content=processed_data, sentiment_result=self.metadata, company=self.metadata['company_name'])
             return pulse
         else:

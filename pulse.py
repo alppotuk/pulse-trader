@@ -12,7 +12,7 @@ class Pulse:
             f"Target Company: {self.company_name}\n"
             f"Content: {self.content}\n"
             f"Sentiment: {self.sentiment}\n" 
-            f"Polarity: {self.sentiment['compound']:.2f}\n"
+            f"Compound Scrore: {self.sentiment['compound']:.2f}\n"
             f"Timestamp: {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
         )
         return summary
