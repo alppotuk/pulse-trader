@@ -22,7 +22,7 @@ def main():
         load_dotenv("config/.env")  # Load environment variables
         logger = Logger("Main")
         rss_feed_url = "https://feeds.bloomberg.com/markets/news.rss"
-        # rss_feed_url = "https://www.investing.com/rss/forex.rss"
+        rss_feed_url = "https://www.investing.com/rss/forex.rss"
         polling_interval = 60
 
 

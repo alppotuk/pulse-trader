@@ -56,7 +56,12 @@ class RSSFeedListener(ListenerAdapter):
         try:
             feed = feedparser.parse(self.feed_url)
             if feed.entries:
-                self.raw_data = feed.entries[0].title + ": " + feed.entries[0].summary
+                title = feed.entries[0].title
+                link = feed.entries[0].link
+                # summary = feed.entries[0].get("summary", "")  
+
+                # Format raw data based on available fields
+                self.raw_data = title
                 return self.raw_data
             else:
                 self.logger.log("warning", "No entries found in the RSS feed.")
@@ -64,6 +69,7 @@ class RSSFeedListener(ListenerAdapter):
         except Exception as e:
             self.logger.log("error", f"Failed to fetch RSS feed: {e}")
             return None
+
 
         
 
@@ -74,7 +80,7 @@ class RSSFeedListener(ListenerAdapter):
             self.logger.log("debug", f"Processing data: {processed_data}")
             sentiment_analysis = self.sentiment_analyzer.analyze(processed_data)
             self.metadata = {
-                "company_name": sentiment_analysis['company_name'],
+                "target_asset": sentiment_analysis['target_asset'],
                 "compound": sentiment_analysis['compound'],
                 "negative": sentiment_analysis['neg'],
                 "positive": sentiment_analysis['pos'],
@@ -82,7 +88,7 @@ class RSSFeedListener(ListenerAdapter):
                 "sentiment": sentiment_analysis['sentiment']
             }
         
-            pulse = Pulse(content=processed_data, sentiment_result=self.metadata, company=self.metadata['company_name'])
+            pulse = Pulse(content=processed_data, sentiment_result=self.metadata, target=self.metadata['target_asset'])
             return pulse
         else:
             self.logger.log("warning", f"Failed to create pulse. Processed data: {processed_data}")

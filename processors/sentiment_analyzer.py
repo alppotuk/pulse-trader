@@ -22,10 +22,10 @@ class SentimentAnalyzer:
     def analyze(self, news_text):
         preprocessed_text = self.preprocess_text(news_text)
         sentiment_result, sentiment_scores = self.analyze_sentiment(preprocessed_text)
-        company = self.identify_companies(news_text)
+        target = self.identify_companies(news_text)
 
         return {
-            'company_name': company,
+            'target_asset': target,
             'sentiment': sentiment_result['sentiment'], 
             'compound': sentiment_scores['compound'],
             'neg': sentiment_scores['neg'],
@@ -56,5 +56,5 @@ class SentimentAnalyzer:
     def identify_companies(self, text):
         doc = nlp(text)
         entities = [ent.text for ent in doc.ents if ent.label_ == 'ORG']
-        company = Counter(entities).most_common(1)[0][0] if entities else ''
-        return company
+        target = Counter(entities).most_common(1)[0][0] if entities else ''
+        return target

@@ -18,7 +18,7 @@ class PulseModel(Base):
     __tablename__ = "pulses"
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     content = Column(String, nullable=False)
-    company_name = Column(String, nullable=True)
+    target_asset = Column(String, nullable=True)
     sentiment_compound = Column(Float, nullable=False)
     sentiment_negative = Column(Float, nullable=False)
     sentiment_positive = Column(Float, nullable=False)
@@ -39,12 +39,12 @@ def save_pulse_to_db(pulse):
             sentiment_positive=pulse.sentiment['positive'],
             sentiment_neutral=pulse.sentiment['neutral'],
             sentiment_str=pulse.sentiment['sentiment'],
-            company_name=pulse.company_name,
+            target_asset=pulse.target_asset,
             timestamp=pulse.timestamp
         )
         db_session.add(pulse_entry)
         db_session.commit()
-        print(f"Pulse saved for {pulse.company_name} at {pulse.timestamp}")
+        print(f"Pulse saved for {pulse.target_asset} at {pulse.timestamp}")
     except Exception as e:
         db_session.rollback()
         print("Failed to save pulse:", e)
